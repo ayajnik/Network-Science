@@ -1,0 +1,60 @@
+import networkx as nx
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import comuunity
+import warnings
+warnings.filterwarnings('ignore')
+
+#importing the file into pandas dataframe
+a = pd.read_csv("Scotland vs England.csv")
+#printing the dataframe
+print (a)
+print (a.head())
+#creating the network
+b = nx.Graph()
+#populating the graph
+for row in a.iterrows():
+    b.add_edge(row[1]['Source'], row[1]['Target'],weight=row[1]['Weight'])
+books = [b]
+#now let's take a look at the edges
+print(list(b.edges(data=True))[3])
+#let's find the most important node in the network
+deg_centrality = nx.degree_centrality(books[0])
+c = sorted(deg_centrality.items(), key=lambda x:x[1], reverse = True)[0:10] #using lambda function to print the list of nodes in reverse order 
+print (c)
+#plotting the histogram of degree centrality
+plt.hist(list(nx.degree_centrality(b).values()))
+plt.show()
+#looking into the betweenness centrality of the graph
+G = nx.barbell_graph(5,1)
+nx.draw(G)
+plt.show() 
+d = sorted(nx.betweenness_centrality(b).items(), key = lambda x:x[1], reverse = True)[0:10]
+print (d) 
+#analyzing with the PageRank Algorithm. The PageRank algorithm works on an underlying assumption that more important the website, the website will have more links
+e = sorted(nx.pagerank_numpy(b, weight = 'weight').items(), key = lambda x:x[1], reverse = True)[0:10]
+print (e)
+#after calculating all the algorithms, it can be useful to calculate the correation between all these results
+cor = pd.DataFrame.from_records([nx.pagerank_numpy(b, weight='weight'),nx.betweenness_centrality(b,weight='weight'),nx.degree_centrality(b)])
+f = cor.T.corr()
+print (f)
+#evolution of importance characters
+evol = [nx.degree_centrality(book) for book in books]
+evol_df = pd.DataFrame.from_records(evol).fillna(0)
+g = evol_df[['Stay','Leave','Scotland','London','UK']].plot()
+plt.show(g)    
+#community detection algorithm
+plt.figure(figsize=(20,20))
+
+partition = community.best_partition(b)
+size = (len(set(partition.values())))
+pos = nx.spring_layout(b)
+count = 0
+colors = [cm.jet(x) for x in np.linspace(0,1,size)]
+for com in set(partition.values()):
+    list_nodes = [nodes for nodes in partition.keys() if partition[nodes] == com]
+    nx.draw_networkx_nodes(b,pos,list_nodes,node_size = 100,node_colors[count])
+    count = count +1
+nx.draw_networkx_edges(b,pos,alpha=0.2)
+plt.show()
